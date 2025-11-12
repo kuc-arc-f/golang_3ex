@@ -50,3 +50,8 @@ go build
 go run .
 ```
 
+***
+### blog
+
+https://zenn.dev/knaka0209/scraps/db3a63aa74b714
+
