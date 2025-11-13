@@ -61,4 +61,10 @@ go get github.com/joho/godotenv
 go build
 go run .
 ```
+***
+### blog
+
+https://zenn.dev/link/comments/c6d63ea9547feb
+
+***
 
