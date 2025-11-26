@@ -62,5 +62,9 @@ go-mcp-server-17.exe create
 ```
 go-mcp-server-17.exe search
 ```
+***
+### blog
+
+https://zenn.dev/knaka0209/scraps/8f1fab8ffe9062
 
 ***
