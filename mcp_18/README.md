@@ -6,8 +6,9 @@
 
 ***
 
-GoLang RAG Search , pgvector
+GoLang MCP Server , RAG Search 
 
+* pgvector use
 * embedding: qwen3-embedding:0.6b , ollama
 
 ***
