@@ -12,6 +12,11 @@ GoLang MCP Server , RAG Search
 * embedding: qwen3-embedding:0.6b , ollama
 
 ***
+* vector data add
+
+https://github.com/kuc-arc-f/golang_3ex/tree/main/mcp_17
+
+***
 * table: ./table.sql
 
 ```
