@@ -29,7 +29,6 @@ go mod init example.com/go-mcp-server-23
 go mod tidy
 
 go build
-go run .
 ```
 
 ***
@@ -48,4 +47,10 @@ go run .
     }    
   },
 ```
+
+***
+### blog
+
+https://zenn.dev/knaka0209/scraps/3ea294502dc63b
+
 ***
