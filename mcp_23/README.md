@@ -9,6 +9,7 @@
 GoLang MCP Server , RAG Search 
 
 * pgvector use
+* GEMINI-CLI use
 * embedding: gemini-embedding-001
 
 ***
@@ -31,4 +32,20 @@ go build
 go run .
 ```
 
+***
+* settings.json , GEMINI-CLI
+
+```
+  "mcpServers": {
+    "my-local-tool": {
+      "command": "/path/mcp_23/go-mcp-server-23.exe",
+      "args": [
+        ""
+      ],
+      "env": {
+        "hoge": ""
+      }
+    }    
+  },
+```
 ***
