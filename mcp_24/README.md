@@ -18,6 +18,10 @@ GoLang RAG , Search pgvector
 ```
 GEMINI_API_KEY="your-key"
 ```
+***
+* table: table.sql 
+***
+* data path: ./data
 
 ***
 * build
