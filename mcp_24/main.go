@@ -1,20 +1,20 @@
 package main
 
 import (
-	"bytes"
+    "bytes"
     "context"
-	"encoding/json"
+    "encoding/json"
     "flag"
-	"fmt"
-	"io"
-	"log"
-	"net/http"
+    "fmt"
+    "io"
+    "log"
+    "net/http"
     "os"
     "path/filepath"
 
     "github.com/jackc/pgx/v5"
     "github.com/pgvector/pgvector-go"    
-    "google.golang.org/genai"
+    //"google.golang.org/genai"
     "github.com/joho/godotenv"
     "github.com/tmc/langchaingo/textsplitter"
 )
@@ -22,22 +22,13 @@ import (
 const DATA_DIR = "./data"
 const CHUNK_SIZE_MAX = 500
 var model = flag.String("model", "gemini-2.0-flash", "the model name, e.g. gemini-2.0-flash")
+const PG_CONNECT_STR = "postgres://root:admin@localhost:5432/mydb"
 
 type ReadParam struct {
     Content  string    `json:"content"`
     Name     string    `json:"name"`
 }
-// EmbeddingRequest represents the request body for the Ollama embedding API.
-type EmbeddingRequest struct {
-	Model  string `json:"model"`
-	Prompt string `json:"prompt"`
-}
 
-// EmbeddingResponse represents the response body from the Ollama embedding API.
-type EmbeddingResponse struct {
-	Embedding []float32 `json:"embedding"`
-	//Embedding []float64 `json:"embedding"`
-}
 // RequestPayload represents the JSON payload for the Ollama API
 type RequestPayload struct {
 	Model  string `json:"model"`
@@ -49,6 +40,26 @@ type ResponsePayload struct {
 	Response string `json:"response"`
 	Done     bool   `json:"done"`
 }
+// リクエストの構造体
+type EmbeddingRequest struct {
+    Model   string  `json:"model"`
+    Content EmbeddingContent `json:"content"`
+}
+
+type EmbeddingContent struct {
+    Parts []EmbeddingPart `json:"parts"`
+}
+
+type EmbeddingPart struct {
+    Text string `json:"text"`
+}
+// レスポンスの構造体
+type EmbeddingResponse struct {
+    Embedding Embedding `json:"embedding"`
+}
+type Embedding struct {
+    Values []float32 `json:"values"`
+}
 
 /**
 *
@@ -56,39 +67,60 @@ type ResponsePayload struct {
 *
 * @return
 */
-func EmbedUserQuery(query string) []byte{
-    err := godotenv.Load()
-    if err != nil {
-      log.Fatalf("Error loading .env file: %s", err)
-    }	    
-    ctx := context.Background()
-    client, err := genai.NewClient(ctx, nil)
-    if err != nil {
-        log.Fatal(err)
-    }
-    contents := []*genai.Content{
-        genai.NewContentFromText(query, genai.RoleUser),
-    }
-    result, err := client.Models.EmbedContent(ctx,
-        "gemini-embedding-001",
-        contents,
-        nil,
-    )
-    if err != nil {
-        log.Fatal(err)
-    }   
-    var respEmbed []byte 
-    for i, embedding := range result.Embeddings {
-        embeddingJSON, err := json.Marshal(embedding.Values)
-        if err != nil {
-            log.Fatal(err)
-        }
-        fmt.Printf("ベクトルの次元数: i=%d,  %d\n", i, len(embeddingJSON))
-        respEmbed = embeddingJSON
-        //fmt.Printf("embed: %s\n", string(embeddingJSON))
-    }
-    fmt.Println("All embeddings inserted successfully!")
-    return respEmbed    
+func getEmbedding(apiKey, text string) (*EmbeddingResponse, error) {
+	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent"
+
+	reqBody := EmbeddingRequest{
+		Model: "models/gemini-embedding-001",
+		Content: EmbeddingContent{
+			Parts: []EmbeddingPart{
+				{Text: text},
+			},
+		},
+	}
+
+	// JSONにエンコード
+	jsonData, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("JSONエンコードエラー: %w", err)
+	}
+
+	// HTTPリクエストの作成
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("リクエスト作成エラー: %w", err)
+	}
+
+	// ヘッダーの設定
+	req.Header.Set("x-goog-api-key", apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	// HTTPクライアントでリクエスト送信
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("リクエスト送信エラー: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// レスポンスボディの読み取り
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("レスポンス読み取りエラー: %w", err)
+	}
+
+	// ステータスコードのチェック
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("APIエラー (ステータス: %d): %s", resp.StatusCode, string(body))
+	}
+
+	// JSONデコード
+	var embeddingResp EmbeddingResponse
+	if err := json.Unmarshal(body, &embeddingResp); err != nil {
+		return nil, fmt.Errorf("JSONデコードエラー: %w", err)
+	}
+
+	return &embeddingResp, nil
 }
 
 /**
@@ -133,14 +165,7 @@ func searchQuery(query string){
         Candidates []Candidate `json:"candidates"`
     }
 
-    dbHost := os.Getenv("PG_HOST")
-    dbUser := os.Getenv("PG_USER")
-    dbDatabase := os.Getenv("PG_DATABASE")
-    dbPass := os.Getenv("PG_PASSWORD")
-    dbPort := os.Getenv("PG_PORT")
-    connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-        dbUser, dbPass, dbHost, dbPort, dbDatabase,
-    ) 
+    connStr := PG_CONNECT_STR
     fmt.Printf("connStr=%s\n", connStr) 
     conn, err := pgx.Connect(ctx, connStr)
     if err != nil {
@@ -148,14 +173,23 @@ func searchQuery(query string){
     }
     defer conn.Close(ctx)
 
-    var embed_value = EmbedUserQuery(query)
-    embedding32s := convertFloat32(embed_value)
-    fmt.Printf("Embedding Vector Length: %d\n", len(embedding32s))
+    // テキストの埋め込みを取得
+    text := query
+    result, err := getEmbedding(apiKey, text)
+    if err != nil {
+        fmt.Printf("エラー: %v\n", err)
+        os.Exit(1)
+    }
 
-    // --- 2. 類似検索（Nearest Neighbor Search） ---
-    // クエリベクトルに近い順に n件取得
-    // <-> はユークリッド距離、 <=> はコサイン距離
-    queryVec := pgvector.NewVector(embedding32s)
+	// 結果の表示
+	fmt.Printf("テキスト: %s\n", text)
+	fmt.Printf("埋め込みベクトルの次元数: %d\n", len(result.Embedding.Values))
+	fmt.Printf("最初の5要素: %v\n", result.Embedding.Values[:5])
+    var embed_value = result.Embedding.Values
+
+    //embedding32s := convertFloat32(embed_value)
+    fmt.Printf("Embedding Vector Length: %d\n", len(embed_value))
+    queryVec := pgvector.NewVector(embed_value)
     rows, err := conn.Query(ctx, "SELECT id, content, embedding FROM documents ORDER BY embedding <-> $1 LIMIT 2", queryVec)
     if err != nil {
         log.Fatal(err)
@@ -180,13 +214,10 @@ func searchQuery(query string){
     }else{
         outText =`user query:` + query + "\n"
     }    
-    //fmt.Printf("outText= %s\n", outText)
     var input string = ""
     input = "日本語で、回答して欲しい。\n" + outText
-    fmt.Printf("input:\n%s", input)
+    fmt.Printf("input:\n%s", input)    
 
-    //generate answer
- 	// APIエンドポイント
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=%s", apiKey)
 
 	// リクエストボディの作成
@@ -244,8 +275,7 @@ func searchQuery(query string){
 	} else {
 		fmt.Println("レスポンスが空です")
 		fmt.Printf("生レスポンス: %s\n", string(body))
-	}
-
+	}    
 }
 /**
 *
@@ -323,6 +353,7 @@ func readTextData() []ReadParam{
 */
 func main() {
     var query = "二十四節季"
+    //var query = "立春 春分"
     fmt.Println("query:", query)
     searchQuery(query)
 }

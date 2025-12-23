@@ -17,12 +17,6 @@ GoLang RAG , Search pgvector
 * .env
 ```
 GEMINI_API_KEY="your-key"
-
-PG_USER=root
-PG_HOST=localhost
-PG_DATABASE=mydb
-PG_PASSWORD=admin
-PG_PORT=5432
 ```
 
 ***
