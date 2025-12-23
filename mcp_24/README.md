@@ -27,7 +27,16 @@ go mod init example.com/go-mcp-server-24
 go mod tidy
 
 go build
-go run .
 ```
 
+***
+* vector data add
+```
+go-mcp-server-24.exe create
+```
+
+* search
+```
+go-mcp-server-24.exe search
+```
 ***

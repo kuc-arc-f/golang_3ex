@@ -10,13 +10,13 @@ import (
     "log"
     "net/http"
     "os"
-    "path/filepath"
+    //"path/filepath"
+    "example.com/go-mcp-server-24/handler"
 
     "github.com/jackc/pgx/v5"
     "github.com/pgvector/pgvector-go"    
-    //"google.golang.org/genai"
     "github.com/joho/godotenv"
-    "github.com/tmc/langchaingo/textsplitter"
+    //"github.com/tmc/langchaingo/textsplitter"
 )
 
 const DATA_DIR = "./data"
@@ -295,56 +295,7 @@ func convertFloat32(value []byte) []float32 {
     //fmt.Printf("float32s.len= %v\n", len(float32s))
     return float32s
 }
-/**
-*
-* @param
-*
-* @return
-*/
-func readTextData() []ReadParam{
-    fileItem := []ReadParam{}
 
-	entries, err := os.ReadDir(DATA_DIR)
-	if err != nil {
-		fmt.Println("フォルダ読み込みエラー:", err)
-		return nil
-	}
-    // textsplitter Setting
-	splitter := textsplitter.NewRecursiveCharacter(
-		textsplitter.WithChunkSize(CHUNK_SIZE_MAX),
-		textsplitter.WithChunkOverlap(10),
-	)        
-
-    var row ReadParam
-	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".txt" {
-			continue
-		}
-
-		path := filepath.Join(DATA_DIR, entry.Name())
-        row.Name = entry.Name()
-
-		data, err := os.ReadFile(path)
-		if err != nil {
-			fmt.Println("ファイル読み込みエラー:", err)
-			continue
-		}
-        row.Content = string(data)
-        // chunks add
-        chunks, err := splitter.SplitText(row.Content)
-        if err != nil {
-            log.Fatal(err)
-        }
-
-        for i, chunk := range chunks {
-            fmt.Printf("Chunk %d:\n%s\n---\n", i+1, chunk)
-            row.Content = chunk
-            fileItem = append(fileItem, row)
-        }    
-		//fmt.Printf("=== %s ===\n%s\n\n", entry.Name(), string(data))
-	}
-    return fileItem
-}
 /**
 *
 * @param
@@ -352,8 +303,21 @@ func readTextData() []ReadParam{
 * @return
 */
 func main() {
-    var query = "二十四節季"
-    //var query = "立春 春分"
+    //var query = "二十四節季"
+    var query = "鎌倉時代"
     fmt.Println("query:", query)
-    searchQuery(query)
+    fmt.Println("全引数:", os.Args)
+    if len(os.Args) > 1 {
+        fmt.Println("最初の引数:", os.Args[1])
+        var argment = os.Args[1]
+        if argment == "search" {
+            fmt.Println("query:", query)
+            searchQuery(query)
+        }
+        if argment == "create" {
+            handler.CreateVector()
+        }
+    } else {
+        fmt.Println("none , arg ")
+    }
 }
