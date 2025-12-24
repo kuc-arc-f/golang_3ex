@@ -44,5 +44,9 @@ go-mcp-server-25.exe create
 go-mcp-server-25.exe search
 ```
 
+***
+### blog
+
+https://zenn.dev/knaka0209/scraps/babfac220459ea
 
 ***
