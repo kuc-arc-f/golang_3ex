@@ -48,5 +48,9 @@ qdrant-3.exe create
 qdrant-3.exe search
 ```
 
+***
+### blog
+
+https://zenn.dev/knaka0209/scraps/ef3b5fc2f6f916
 
 ***
