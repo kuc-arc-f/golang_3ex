@@ -49,3 +49,9 @@ weaviate-2.exe search
 ```
 
 ***
+### blog
+
+https://zenn.dev/knaka0209/scraps/313cb673f35653
+
+***
+
