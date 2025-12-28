@@ -52,4 +52,10 @@ go build
     }    
   },
 ```
+
+***
+### blog
+
+https://zenn.dev/knaka0209/scraps/02e0eff8d64c7b
+
 ***
