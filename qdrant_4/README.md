@@ -13,6 +13,11 @@ GoLang MCP Server , RAG Search
 * GEMINI-CLI
 
 ***
+* vector data add
+
+https://github.com/kuc-arc-f/golang_3ex/tree/main/qdrant_3
+
+***
 ### Setup
 
 * config/config.go
