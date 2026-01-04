@@ -99,7 +99,7 @@ func getEmbedding(apiKey, text string) (*EmbeddingResponse, error) {
     return &embeddingResp, nil
 }
 
-const collectionName = "document-2"
+const collectionName = "doc-collection"
 
 /**
 *
