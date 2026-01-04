@@ -16,7 +16,7 @@ GoLang MCP Server , RAG Search
 ***
 * vector data add
 
-https://github.com/kuc-arc-f/golang_3pri/tree/main/qdrant_3
+https://github.com/kuc-arc-f/golang_3ex/tree/main/qdrant_3
 
 ***
 ### Setup
