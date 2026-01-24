@@ -45,5 +45,9 @@ copilot_2.exe create
 copilot_2.exe search hello
 ```
 
+***
+### blog
+
+https://zenn.dev/knaka0209/scraps/04962855036326
 
 ***
