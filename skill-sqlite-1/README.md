@@ -32,12 +32,12 @@ go build
 ```
 
 ***
-* list
+* add
 ```
 ./skill-sqlite-1 todo_add todo-test1
 ```
 
-* add
+* list
 ```
 ./skill-sqlite-1 todos
 ```
