@@ -15,6 +15,7 @@ GoLang  , todo app CLI
 ### Setup
 
 * DB-Path change
+* main.go
 
 ```
 const DB_PATH = "/home/user123/skill-sqlite-1/todos.db"
