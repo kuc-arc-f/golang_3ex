@@ -70,5 +70,9 @@ qdrant-10.exe create
 qdrant-10.exe search hello
 ```
 
+***
+### blog
+
+https://zenn.dev/knaka0209/scraps/552edd046576b9
 
 ***
